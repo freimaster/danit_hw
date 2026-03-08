@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch directory ~/watch
+
+[Service]
+User=default-user
+ExecStart=/usr/local/bin/watch.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
