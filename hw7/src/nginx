@@ -1,0 +1,10 @@
+##/etc/monit/conf-enabled/nginx
+
+check process nginx with pidfile /run/nginx.pid
+
+start program = "/usr/bin/systemctl start nginx"
+stop program  = "/usr/bin/systemctl stop nginx"
+
+if failed port 80 protocol http then restart
+
+if 7 restarts within 7 cycles then timeout

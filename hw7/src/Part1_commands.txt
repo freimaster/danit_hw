@@ -1,0 +1,47 @@
+1. Створення облікових записів користувачів:
+
+sudo useradd -m dev1; sudo useradd -m dev2; sudo useradd -m dev3
+id dev1; id dev2; id dev3
+
+2. Створення груп:
+
+sudo groupadd developers; sudo groupadd webmasters
+getent group developers; getent group webmasters
+
+3. Призначення користувачів до груп:
+
+sudo usermod -aG developers dev1; sudo usermod -aG developers dev2; sudo usermod -aG webmasters dev3
+groups dev1; groups dev2; groups dev3
+
+4. Встановити групу за замовчуванням для користувачів:
+
+sudo usermod -g developers dev1; sudo usermod -g developers dev2; sudo usermod -g developers dev3
+id dev1; id dev2; id dev3
+
+5. Створення домашніх каталогів:
+
+echo "утиліта useradd з ключем -m створює домашні каталоги автоматично "
+ls -ld /home/dev1; ls -ld /home/dev2; ls -ld /home/dev3
+
+6. Клонуйте обліковий запис користувача:
+
+sudo useradd -m backupdev
+sudo cp -a /home/dev1/. /home/backupdev/
+sudo chown -R backupdev:developers /home/backupdev
+sudo ls -ld /home/backupdev
+sudo ls -l /home/backupdev
+cat /etc/passwd | grep backupdev
+sudo usermod -g developers backupdev
+
+7. Налаштування дозволів для спільного проєкту:
+
+sudo mkdir -p /home/web_project
+sudo chown :developers /home/web_project
+sudo chmod 770 /home/web_project
+ls -ld /home/web_project
+
+8. Незмінний файл журналу:
+
+sudo touch /home/my.log
+sudo chattr +a /home/my.log
+lsattr /home/my.log
