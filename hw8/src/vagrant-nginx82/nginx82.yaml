@@ -1,0 +1,37 @@
+---
+- name: Setup nginx82
+  hosts: all
+  become: yes
+  tasks:
+
+  - name: Update apt list
+    apt:
+      update_cache: yes
+
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: present
+
+  - name: Bkp orig. nginx conf
+    copy:
+      src: /etc/nginx/nginx.conf
+      dest: /etc/nginx/nginx.conf.bkp
+      remote_src: yes
+      force: no
+
+  - name: Sed port to 82
+    shell: sed -i 's/listen 80/listen 82/g' /etc/nginx/sites-available/default
+
+  - name: Sed IPv6 port to 82
+    shell: sed -i 's/\[::\]:80/\[::\]:82/g' /etc/nginx/sites-available/default
+
+  - name: Copy custom index.html
+    copy:
+      src: files/index.html
+      dest: /var/www/html/index.html
+
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted
