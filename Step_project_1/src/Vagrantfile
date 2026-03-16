@@ -1,0 +1,56 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  # DB
+  config.vm.define "db_vm" do |db|
+    db.vm.hostname = "dbvm"
+    db.vm.network "private_network",
+      ip: ENV["DB_IP"],
+      virtualbox__intnet: "petclinic_net"
+    db.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+    db.vm.provision "ansible" do |ansible|
+      ansible.playbook = "playbook.yaml"
+      ansible.limit = "db_vm"
+      ansible.extra_vars = {
+        db_ip: ENV["DB_IP"],
+        app_ip: ENV["APP_IP"],
+        db_name: ENV["DB_NAME"],
+        db_user: ENV["DB_USER"],
+        db_pass: ENV["DB_PASS"],
+        db_port: ENV["DB_PORT"]
+      }
+    end
+  end
+
+  # APP
+  config.vm.define "app_vm" do |app|
+    app.vm.hostname = "appvm"
+    app.vm.network "private_network",
+      ip: ENV["APP_IP"],
+      virtualbox__intnet: "petclinic_net"
+    app.vm.network "forwarded_port", guest: ENV["APP_PORT"], host: ENV["APP_PORT"], host_ip: "127.0.0.1"
+    app.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+    app.vm.provision "ansible" do |ansible|
+      ansible.playbook = "playbook.yaml"
+      ansible.limit = "app_vm"
+      ansible.extra_vars = {
+        db_host: ENV["DB_IP"],
+        db_port: ENV["DB_PORT"],
+        db_name: ENV["DB_NAME"],
+        db_user: ENV["DB_USER"],
+        db_pass: ENV["DB_PASS"],
+        app_user: ENV["APP_USER"],
+        git_repo: ENV["GIT_REPO"],
+        git_branch: ENV["GIT_BRANCH"],
+        git_token: ENV["GIT_TOKEN"],
+        project_dir: ENV["PROJECT_DIR"],
+        app_dir: ENV["APP_DIR"],
+      }
+    end
+  end
+end

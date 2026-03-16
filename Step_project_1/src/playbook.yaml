@@ -1,0 +1,132 @@
+- hosts: db_vm
+  become: true
+  tasks:
+    - name: Сетаплю мускуль
+      apt:
+        name:
+          - mysql-server
+          - python3-pymysql
+          - net-tools
+        update_cache: true
+    - name: Тепер стартую його
+      service:
+        name: mysql
+        state: started
+        enabled: true
+    - name: Налаштовую MySQL слухати приватну адресу db_vm
+      lineinfile:
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: '^bind-address\s*='
+        line: "bind-address = {{ db_ip }}"
+      notify: Перезапускаю mysql
+    - name: Налаштовую MySQL X Protocol слухати приватну адресу db_vm
+      lineinfile:
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: '^mysqlx-bind-address\s*='
+        line: "mysqlx-bind-address = {{ db_ip }}"
+      notify: Перезапускаю mysql
+    - name: Створюю базу даних
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+    - name: Створюю юзера бази даних, призначаю пароль та права доступу
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_pass }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "{{ app_ip }}"
+        state: present
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+  handlers:
+    - name: Перезапускаю mysql
+      service:
+        name: mysql
+        state: restarted
+
+- hosts: app_vm
+  become: true
+  tasks:
+    - name: Сетаплю java, git, maven...
+      apt:
+        name:
+          - openjdk-17-jdk
+          - git
+          - maven
+          - net-tools
+        update_cache: true
+    - name: Налаштовую git token для GitLab
+      shell: |
+        git config --global url."https://oauth2:{{ git_token }}@gitlab.com/".insteadOf "https://gitlab.com/"
+      no_log: true
+      when: git_token is defined and (git_token | length > 0)
+    - name: Створюю юзера для запуску додатку
+      user:
+        name: "{{ app_user }}"
+        shell: /bin/bash
+        create_home: true
+    - name: Перевіряю, чи існує директорія для проєкту
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0755'
+    - name: Перевіряю, чи існує директорія для додатку, виставляю права
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+    - name: Клоную repo
+      ansible.builtin.git:
+        repo: "{{ git_repo }}"
+        dest: "{{ project_dir }}"
+        version: "{{ git_branch }}"
+    - name: Білджу додаток....
+      shell: mvn clean package
+      args:
+        chdir: "{{ project_dir }}"
+    - name: Копіюю зібраний додаток в хом'як юзера для запуску
+      shell: |
+        cp {{ project_dir }}/target/*petclinic*.jar {{ app_dir }}/petclinic.jar
+        chown {{ app_user }}:{{ app_user }} {{ app_dir }}/petclinic.jar
+        chmod 0644 {{ app_dir }}/petclinic.jar
+    - name: Створюю файл змінних середовища для додатку
+      copy:
+        dest: "{{ app_dir }}/petclinic.env"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+        content: |
+          SPRING_PROFILES_ACTIVE=mysql
+          MYSQL_URL=jdbc:mysql://{{ db_host }}:{{ db_port }}/{{ db_name }}
+          MYSQL_USER={{ db_user }}
+          MYSQL_PASS={{ db_pass }}
+    - name: Створюю systemd сервіс для додатку
+      copy:
+        dest: /etc/systemd/system/petclinic.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Petclinic Application
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          WorkingDirectory={{ app_dir }}
+          EnvironmentFile={{ app_dir }}/petclinic.env
+          ExecStart=/usr/bin/java -jar {{ app_dir }}/petclinic.jar
+          Restart=on-failure
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+    - name: Перезавантажую systemd
+      systemd:
+        daemon_reload: true
+    - name: Запускаю та вмикаю автозапуск додатку
+      systemd:
+        name: petclinic
+        state: restarted
+        enabled: true
