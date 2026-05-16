@@ -1,0 +1,228 @@
+REST API test results
+======================================================================
+
+======================================================================
+TEST 1: Отримати всіх наявних студентів (GET)
+Method: GET
+URL: http://127.0.0.1:5000/students
+Status code: 200
+Response JSON:
+[]
+----------------------------------------------------------------------
+
+======================================================================
+TEST 2.1: Створити першого студента (POST)
+Method: POST
+URL: http://127.0.0.1:5000/students
+Request body:
+{
+    "first_name": "Ivan",
+    "last_name": "Petrenko",
+    "age": 20
+}
+Status code: 201
+Response JSON:
+{
+    "age": "20",
+    "first_name": "Ivan",
+    "id": "1",
+    "last_name": "Petrenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 2.2: Створити другого студента (POST)
+Method: POST
+URL: http://127.0.0.1:5000/students
+Request body:
+{
+    "first_name": "Olena",
+    "last_name": "Shevchenko",
+    "age": 21
+}
+Status code: 201
+Response JSON:
+{
+    "age": "21",
+    "first_name": "Olena",
+    "id": "2",
+    "last_name": "Shevchenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 2.3: Створити третього студента (POST)
+Method: POST
+URL: http://127.0.0.1:5000/students
+Request body:
+{
+    "first_name": "Andrii",
+    "last_name": "Kovalenko",
+    "age": 22
+}
+Status code: 201
+Response JSON:
+{
+    "age": "22",
+    "first_name": "Andrii",
+    "id": "3",
+    "last_name": "Kovalenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 3: Отримати інформацію про всіх наявних студентів (GET)
+Method: GET
+URL: http://127.0.0.1:5000/students
+Status code: 200
+Response JSON:
+[
+    {
+        "age": "20",
+        "first_name": "Ivan",
+        "id": "1",
+        "last_name": "Petrenko"
+    },
+    {
+        "age": "21",
+        "first_name": "Olena",
+        "id": "2",
+        "last_name": "Shevchenko"
+    },
+    {
+        "age": "22",
+        "first_name": "Andrii",
+        "id": "3",
+        "last_name": "Kovalenko"
+    }
+]
+----------------------------------------------------------------------
+
+======================================================================
+TEST 4: Оновити вік другого студента (PATCH)
+Method: PATCH
+URL: http://127.0.0.1:5000/students/2
+Request body:
+{
+    "age": 25
+}
+Status code: 200
+Response JSON:
+{
+    "age": "25",
+    "first_name": "Olena",
+    "id": "2",
+    "last_name": "Shevchenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 5: Отримати інформацію про другого студента (GET)
+Method: GET
+URL: http://127.0.0.1:5000/students/2
+Status code: 200
+Response JSON:
+{
+    "age": "25",
+    "first_name": "Olena",
+    "id": "2",
+    "last_name": "Shevchenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 6: Оновити імʼя, прізвище та вік третього студента (PUT)
+Method: PUT
+URL: http://127.0.0.1:5000/students/3
+Request body:
+{
+    "first_name": "Maksym",
+    "last_name": "Bondarenko",
+    "age": 23
+}
+Status code: 200
+Response JSON:
+{
+    "age": "23",
+    "first_name": "Maksym",
+    "id": "3",
+    "last_name": "Bondarenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 7: Отримати інформацію про третього студента (GET)
+Method: GET
+URL: http://127.0.0.1:5000/students/3
+Status code: 200
+Response JSON:
+{
+    "age": "23",
+    "first_name": "Maksym",
+    "id": "3",
+    "last_name": "Bondarenko"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 8: Отримати всіх наявних студентів (GET)
+Method: GET
+URL: http://127.0.0.1:5000/students
+Status code: 200
+Response JSON:
+[
+    {
+        "age": "20",
+        "first_name": "Ivan",
+        "id": "1",
+        "last_name": "Petrenko"
+    },
+    {
+        "age": "25",
+        "first_name": "Olena",
+        "id": "2",
+        "last_name": "Shevchenko"
+    },
+    {
+        "age": "23",
+        "first_name": "Maksym",
+        "id": "3",
+        "last_name": "Bondarenko"
+    }
+]
+----------------------------------------------------------------------
+
+======================================================================
+TEST 9: Видалити першого студента (DELETE)
+Method: DELETE
+URL: http://127.0.0.1:5000/students/1
+Status code: 200
+Response JSON:
+{
+    "message": "Student with id 1 deleted successfully"
+}
+----------------------------------------------------------------------
+
+======================================================================
+TEST 10: Отримати всіх наявних студентів після видалення (GET)
+Method: GET
+URL: http://127.0.0.1:5000/students
+Status code: 200
+Response JSON:
+[
+    {
+        "age": "25",
+        "first_name": "Olena",
+        "id": "2",
+        "last_name": "Shevchenko"
+    },
+    {
+        "age": "23",
+        "first_name": "Maksym",
+        "id": "3",
+        "last_name": "Bondarenko"
+    }
+]
+----------------------------------------------------------------------
+
+Testing finished. Results saved to results.txt
