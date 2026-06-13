@@ -1,0 +1,21 @@
+# Local environment and secrets
+src/env.yml
+
+# Node.js
+src/app/node_modules/
+src/app/npm-debug.log*
+src/app/yarn-debug.log*
+src/app/yarn-error.log*
+src/app/.npm/
+
+# Nested repository metadata
+src/app/.git/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Ansible temporary files
+*.retry

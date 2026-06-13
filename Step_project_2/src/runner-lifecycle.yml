@@ -1,0 +1,474 @@
+---
+- name: Manage GitLab Runner VM lifecycle on Proxmox
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  module_defaults:
+    group/community.proxmox.proxmox:
+      api_host: "{{ proxmox_api_host }}"
+      api_user: "{{ proxmox_api_user }}"
+      api_password: "{{ proxmox_api_password }}"
+      api_port: "{{ proxmox_api_port | default(8006) }}"
+      api_timeout: "{{ proxmox_api_timeout | default(30) }}"
+      validate_certs: "{{ proxmox_validate_certs | default(false) }}"
+
+  vars:
+    gitlab_registry_endpoint: "{{ gitlab_registry_host }}:{{ gitlab_registry_port }}"
+    gitlab_runner_effective_auth_token: "{{ gitlab_runner_auth_token | default(gitlab_runner_token | default('')) }}"
+    runner_effective_description: "{{ runner_description | default('proxmox-docker-runner') }}"
+    runner_effective_executor_docker_image: "{{ runner_executor_docker_image | default('docker:28') }}"
+
+  tasks:
+    - name: Validate action
+      ansible.builtin.assert:
+        that:
+          - action is defined
+          - action in ['deploy', 'stop', 'destroy']
+        fail_msg: "Pass action=deploy, action=stop or action=destroy"
+
+    - name: Validate required lifecycle variables
+      ansible.builtin.assert:
+        that:
+          - proxmox_api_host is defined
+          - proxmox_api_host | length > 0
+          - proxmox_api_user is defined
+          - proxmox_api_user | length > 0
+          - proxmox_api_password is defined
+          - proxmox_api_password | length > 0
+          - proxmox_node is defined
+          - proxmox_node | length > 0
+          - runner_vm_id is defined
+          - runner_vm_name is defined
+          - runner_vm_name | length > 0
+        fail_msg: "Required lifecycle variables are missing. Check env.yml."
+
+    - name: Validate required deploy variables
+      ansible.builtin.assert:
+        that:
+          - proxmox_storage is defined
+          - proxmox_storage | length > 0
+          - runner_template_name is defined
+          - runner_template_name | length > 0
+          - runner_ip is defined
+          - runner_ip | length > 0
+          - runner_cidr is defined
+          - runner_gateway is defined
+          - runner_gateway | length > 0
+          - runner_dns is defined
+          - runner_dns | length > 0
+          - runner_ssh_user is defined
+          - runner_ssh_user | length > 0
+          - runner_ssh_public_key is defined
+          - runner_ssh_public_key | length > 0
+          - runner_ssh_private_key_file is defined
+          - runner_ssh_private_key_file | length > 0
+          - runner_cores is defined
+          - runner_memory is defined
+          - gitlab_url is defined
+          - gitlab_url | length > 0
+          - gitlab_runner_effective_auth_token | length > 0
+          - gitlab_runner_effective_auth_token is match('^glrt-')
+          - gitlab_registry_host is defined
+          - gitlab_registry_host | length > 0
+          - gitlab_registry_port is defined
+          - runner_effective_description | length > 0
+          - runner_effective_executor_docker_image | length > 0
+        fail_msg: "Required deploy variables are missing or invalid. Check env.yml."
+      when: action == 'deploy'
+
+    - name: Check runner SSH private key file on control host
+      ansible.builtin.stat:
+        path: "{{ runner_ssh_private_key_file }}"
+      register: runner_ssh_private_key_file_stat
+      when: action == 'deploy'
+
+    - name: Validate runner SSH private key file
+      ansible.builtin.assert:
+        that:
+          - runner_ssh_private_key_file_stat.stat.exists
+          - runner_ssh_private_key_file_stat.stat.isreg
+        fail_msg: "runner_ssh_private_key_file does not exist on the control host."
+      when: action == 'deploy'
+
+    - name: Gather runner VM information by VMID
+      community.proxmox.proxmox_vm_info:
+        node: "{{ proxmox_node }}"
+        vmid: "{{ runner_vm_id }}"
+        type: qemu
+      register: runner_vm_info_by_vmid
+
+    - name: Gather runner VM information by name
+      community.proxmox.proxmox_vm_info:
+        node: "{{ proxmox_node }}"
+        name: "{{ runner_vm_name }}"
+        type: qemu
+      register: runner_vm_info_by_name
+
+    - name: Derive runner VM state facts
+      ansible.builtin.set_fact:
+        runner_vm_existing_by_vmid: "{{ runner_vm_info_by_vmid.proxmox_vms | default([]) }}"
+        runner_vm_existing_by_name: "{{ runner_vm_info_by_name.proxmox_vms | default([]) }}"
+        runner_vm_exists: "{{ (runner_vm_info_by_vmid.proxmox_vms | default([]) | length) > 0 }}"
+
+    - name: Validate VM identity consistency
+      ansible.builtin.assert:
+        that:
+          - runner_vm_existing_by_name | length in [0, 1]
+          - runner_vm_existing_by_vmid | length in [0, 1]
+          - runner_vm_existing_by_name | length == 0 or runner_vm_existing_by_name[0].vmid | int == runner_vm_id | int
+          - runner_vm_existing_by_vmid | length == 0 or runner_vm_existing_by_vmid[0].name == runner_vm_name
+        fail_msg: >-
+          The requested runner VM name and VMID point to different existing VMs in Proxmox.
+          Resolve the conflict before running this playbook.
+
+    - name: Stop runner VM
+      community.proxmox.proxmox_kvm:
+        node: "{{ proxmox_node }}"
+        vmid: "{{ runner_vm_id }}"
+        state: stopped
+        force: true
+      when:
+        - action in ['stop', 'destroy']
+        - runner_vm_exists
+
+    - name: Remove runner VM
+      community.proxmox.proxmox_kvm:
+        node: "{{ proxmox_node }}"
+        vmid: "{{ runner_vm_id }}"
+        state: absent
+      when:
+        - action == 'destroy'
+        - runner_vm_exists
+
+    - name: Clone Ubuntu 24.04 template
+      community.proxmox.proxmox_kvm:
+        node: "{{ proxmox_node }}"
+        clone: "{{ runner_template_name }}"
+        name: "{{ runner_vm_name }}"
+        newid: "{{ runner_vm_id }}"
+        full: true
+        storage: "{{ proxmox_storage }}"
+        timeout: 600
+      when:
+        - action == 'deploy'
+        - not runner_vm_exists
+
+    - name: Wait until cloned VM is visible in Proxmox
+      community.proxmox.proxmox_vm_info:
+        node: "{{ proxmox_node }}"
+        vmid: "{{ runner_vm_id }}"
+        type: qemu
+      register: runner_vm_info_after_clone
+      until: (runner_vm_info_after_clone.proxmox_vms | default([]) | length) == 1
+      retries: 15
+      delay: 20
+      when: action == 'deploy'
+
+    - name: Configure VM hardware and cloud-init
+      community.proxmox.proxmox_kvm:
+        node: "{{ proxmox_node }}"
+        vmid: "{{ runner_vm_id }}"
+        name: "{{ runner_vm_name }}"
+        state: present
+        cores: "{{ runner_cores }}"
+        memory: "{{ runner_memory }}"
+        ciuser: "{{ runner_ssh_user }}"
+        sshkeys: "{{ runner_ssh_public_key }}"
+        ipconfig:
+          ipconfig0: "ip={{ runner_ip }}/{{ runner_cidr }},gw={{ runner_gateway }}"
+        nameservers:
+          - "{{ runner_dns }}"
+        update: true
+      when: action == 'deploy'
+
+    - name: Start runner VM
+      community.proxmox.proxmox_kvm:
+        node: "{{ proxmox_node }}"
+        vmid: "{{ runner_vm_id }}"
+        state: started
+      when: action == 'deploy'
+
+    - name: Wait for SSH port on runner VM
+      ansible.builtin.wait_for:
+        host: "{{ runner_ip }}"
+        port: 22
+        timeout: 300
+      when: action == 'deploy'
+
+    - name: Add runner VM to temporary inventory
+      ansible.builtin.add_host:
+        name: runner_vm
+        ansible_host: "{{ runner_ip }}"
+        ansible_user: "{{ runner_ssh_user }}"
+        ansible_ssh_private_key_file: "{{ runner_ssh_private_key_file }}"
+      when: action == 'deploy'
+
+
+- name: Configure GitLab Runner VM
+  hosts: runner_vm
+  become: true
+  gather_facts: false
+
+  vars:
+    docker_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+    docker_apt_arch: "{{ docker_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+    gitlab_registry_endpoint: "{{ gitlab_registry_host }}:{{ gitlab_registry_port }}"
+    gitlab_runner_effective_auth_token: "{{ gitlab_runner_auth_token | default(gitlab_runner_token | default('')) }}"
+    runner_effective_description: "{{ runner_description | default('proxmox-docker-runner') }}"
+    runner_effective_executor_docker_image: "{{ runner_executor_docker_image | default('docker:28') }}"
+
+  pre_tasks:
+    - name: Stop if action is not deploy
+      ansible.builtin.meta: end_play
+      when: action != 'deploy'
+
+    - name: Wait for SSH connection
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Validate target operating system
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == 'Ubuntu'
+          - ansible_distribution_version is version('24.04', '>=')
+        fail_msg: "This playbook supports Ubuntu Server 24.04 LTS or newer only."
+
+    - name: Pause after cloud-init completion
+      ansible.builtin.pause:
+        seconds: 60
+
+    - name: Wait until apt and dpkg locks are released
+      ansible.builtin.shell: |
+        while fuser /var/lib/dpkg/lock >/dev/null 2>&1 \
+          || fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 \
+          || fuser /var/lib/apt/lists/lock >/dev/null 2>&1 \
+          || fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+          sleep 5
+        done
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+  tasks:
+    - name: Ensure apt keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Remove conflicting Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose
+          - docker-compose-v2
+          - docker-doc
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
+        purge: true
+        autoremove: true
+      failed_when: false
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - apt-transport-https
+        state: present
+        update_cache: true
+
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+        force: true
+
+    - name: Add Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        filename: docker
+        state: present
+
+    - name: Install Docker Engine
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker configuration directory exists
+      ansible.builtin.file:
+        path: /etc/docker
+        state: directory
+        mode: "0755"
+
+    - name: Configure Docker insecure registry
+      ansible.builtin.copy:
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+        content: |
+          {{ {'insecure-registries': [gitlab_registry_endpoint]} | to_nice_json }}
+      notify: Restart Docker
+
+    - name: Enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add GitLab Runner GPG key
+      ansible.builtin.get_url:
+        url: https://packages.gitlab.com/runner/gitlab-runner/gpgkey
+        dest: /etc/apt/keyrings/gitlab-runner.asc
+        mode: "0644"
+        force: true
+
+    - name: Add GitLab Runner apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/gitlab-runner.asc] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_distribution_release }} main"
+        filename: gitlab-runner
+        state: present
+
+    - name: Install GitLab Runner
+      ansible.builtin.apt:
+        name: gitlab-runner
+        state: present
+        update_cache: true
+
+    - name: Add gitlab-runner user to docker group
+      ansible.builtin.user:
+        name: gitlab-runner
+        groups: docker
+        append: true
+      notify: Restart GitLab Runner
+
+    - name: Ensure GitLab Runner configuration directory exists
+      ansible.builtin.file:
+        path: /etc/gitlab-runner
+        state: directory
+        owner: gitlab-runner
+        group: gitlab-runner
+        mode: "0700"
+
+    - name: Create GitLab Runner registration template
+      ansible.builtin.copy:
+        dest: /etc/gitlab-runner/register-template.toml
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          [[runners]]
+            executor = "docker"
+            [runners.docker]
+              image = "{{ runner_effective_executor_docker_image }}"
+              privileged = true
+              tls_verify = false
+      notify: Restart GitLab Runner
+
+    - name: Check whether GitLab Runner config exists
+      ansible.builtin.stat:
+        path: /etc/gitlab-runner/config.toml
+      register: gitlab_runner_config_stat
+
+    - name: Read GitLab Runner config
+      ansible.builtin.slurp:
+        src: /etc/gitlab-runner/config.toml
+      register: gitlab_runner_config_raw
+      when: gitlab_runner_config_stat.stat.exists
+      no_log: true
+
+    - name: Derive GitLab Runner registration state
+      ansible.builtin.set_fact:
+        gitlab_runner_config_text: "{{ gitlab_runner_config_raw.content | b64decode if gitlab_runner_config_stat.stat.exists else '' }}"
+        gitlab_runner_has_registered_runners: >-
+          {{
+            gitlab_runner_config_stat.stat.exists and
+            ((gitlab_runner_config_raw.content | b64decode | regex_search('\\[\\[runners\\]\\]')) is not none)
+          }}
+        gitlab_runner_is_registered: >-
+          {{
+            gitlab_runner_config_stat.stat.exists and
+            ((gitlab_runner_config_raw.content | b64decode | regex_search('\\[\\[runners\\]\\]')) is not none) and
+            (gitlab_runner_config_raw.content | b64decode | regex_search('token\\s*=\\s*\"' ~ (gitlab_runner_effective_auth_token | regex_escape) ~ '\"')) is not none
+          }}
+      no_log: true
+
+    - name: Fail when an unexpected runner token is already registered
+      ansible.builtin.fail:
+        msg: >-
+          /etc/gitlab-runner/config.toml already exists, but it does not contain the expected
+          runner authentication token. Remove the existing runner registration first or update
+          env.yml with the correct token.
+      when:
+        - gitlab_runner_has_registered_runners
+        - not gitlab_runner_is_registered
+
+    - name: Register GitLab Runner with authentication token
+      ansible.builtin.shell: |
+        gitlab-runner register \
+          --non-interactive \
+          --url "{{ gitlab_url }}" \
+          --token "$GITLAB_RUNNER_AUTH_TOKEN" \
+          --description "{{ runner_effective_description }}" \
+          --executor docker \
+          --docker-image "{{ runner_effective_executor_docker_image }}" \
+          --template-config /etc/gitlab-runner/register-template.toml
+      args:
+        executable: /bin/bash
+      environment:
+        GITLAB_RUNNER_AUTH_TOKEN: "{{ gitlab_runner_effective_auth_token }}"
+      register: gitlab_runner_register
+      changed_when: gitlab_runner_register.rc == 0
+      when: not gitlab_runner_is_registered
+      notify: Restart GitLab Runner
+
+    - name: Ensure GitLab Runner service is enabled
+      ansible.builtin.systemd:
+        name: gitlab-runner
+        enabled: true
+        state: started
+
+    - name: Flush handlers before validation
+      ansible.builtin.meta: flush_handlers
+
+    - name: Check Docker
+      ansible.builtin.command: docker version
+      register: docker_version
+      changed_when: false
+
+    - name: Check GitLab Runner
+      ansible.builtin.command: gitlab-runner status
+      register: runner_status
+      changed_when: false
+
+    - name: Print status
+      ansible.builtin.debug:
+        msg:
+          - "{{ docker_version.stdout_lines }}"
+          - "{{ runner_status.stdout_lines }}"
+
+  handlers:
+    - name: Restart Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+
+    - name: Restart GitLab Runner
+      ansible.builtin.systemd:
+        name: gitlab-runner
+        state: restarted

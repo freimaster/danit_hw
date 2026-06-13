@@ -1,0 +1,303 @@
+$ ansible-playbook runner-lifecycle.yml -i 'localhost,' -e @env.yml -e action=destroy
+/usr/lib/python3/dist-packages/paramiko/pkey.py:82: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
+  "cipher": algorithms.TripleDES,
+/usr/lib/python3/dist-packages/paramiko/transport.py:261: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
+  "class": algorithms.TripleDES,
+[WARNING]: Found variable using reserved name: action
+
+PLAY [Manage GitLab Runner VM lifecycle on Proxmox] ***********************************************************************************************************
+
+TASK [Validate action] ****************************************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Validate required lifecycle variables] ******************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Validate required deploy variables] *********************************************************************************************************************
+skipping: [localhost]
+
+TASK [Check runner SSH private key file on control host] ******************************************************************************************************
+skipping: [localhost]
+
+TASK [Validate runner SSH private key file] *******************************************************************************************************************
+skipping: [localhost]
+
+TASK [Gather runner VM information by VMID] *******************************************************************************************************************
+[WARNING]: Platform linux on host localhost is using the discovered Python interpreter at /usr/bin/python3.10, but future installation of another Python
+interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more
+information.
+ok: [localhost]
+
+TASK [Gather runner VM information by name] *******************************************************************************************************************
+ok: [localhost]
+
+TASK [Derive runner VM state facts] ***************************************************************************************************************************
+ok: [localhost]
+
+TASK [Validate VM identity consistency] ***********************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Stop runner VM] *****************************************************************************************************************************************
+changed: [localhost]
+
+TASK [Remove runner VM] ***************************************************************************************************************************************
+changed: [localhost]
+
+TASK [Clone Ubuntu 24.04 template] ****************************************************************************************************************************
+skipping: [localhost]
+
+TASK [Wait until cloned VM is visible in Proxmox] *************************************************************************************************************
+skipping: [localhost]
+
+TASK [Configure VM hardware and cloud-init] *******************************************************************************************************************
+skipping: [localhost]
+
+TASK [Start runner VM] ****************************************************************************************************************************************
+skipping: [localhost]
+
+TASK [Wait for SSH port on runner VM] *************************************************************************************************************************
+skipping: [localhost]
+
+TASK [Add runner VM to temporary inventory] *******************************************************************************************************************
+skipping: [localhost]
+[WARNING]: Could not match supplied host pattern, ignoring: runner_vm
+
+PLAY [Configure GitLab Runner VM] *****************************************************************************************************************************
+skipping: no hosts matched
+
+PLAY RECAP ****************************************************************************************************************************************************
+localhost                  : ok=8    changed=2    unreachable=0    failed=0    skipped=9    rescued=0    ignored=0   
+
+user-a@Elite:~/danit_hw/Step_project_2/src$ ansible-playbook runner-lifecycle.yml -i 'localhost,' -e @env.yml -e action=deploy
+/usr/lib/python3/dist-packages/paramiko/pkey.py:82: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
+  "cipher": algorithms.TripleDES,
+/usr/lib/python3/dist-packages/paramiko/transport.py:261: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
+  "class": algorithms.TripleDES,
+[WARNING]: Found variable using reserved name: action
+
+PLAY [Manage GitLab Runner VM lifecycle on Proxmox] ***********************************************************************************************************
+
+TASK [Validate action] ****************************************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Validate required lifecycle variables] ******************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Validate required deploy variables] *********************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Check runner SSH private key file on control host] ******************************************************************************************************
+[WARNING]: Platform linux on host localhost is using the discovered Python interpreter at /usr/bin/python3.10, but future installation of another Python
+interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more
+information.
+ok: [localhost]
+
+TASK [Validate runner SSH private key file] *******************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Gather runner VM information by VMID] *******************************************************************************************************************
+ok: [localhost]
+
+TASK [Gather runner VM information by name] *******************************************************************************************************************
+ok: [localhost]
+
+TASK [Derive runner VM state facts] ***************************************************************************************************************************
+ok: [localhost]
+
+TASK [Validate VM identity consistency] ***********************************************************************************************************************
+ok: [localhost] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Stop runner VM] *****************************************************************************************************************************************
+skipping: [localhost]
+
+TASK [Remove runner VM] ***************************************************************************************************************************************
+skipping: [localhost]
+
+TASK [Clone Ubuntu 24.04 template] ****************************************************************************************************************************
+changed: [localhost]
+
+TASK [Wait until cloned VM is visible in Proxmox] *************************************************************************************************************
+ok: [localhost]
+
+TASK [Configure VM hardware and cloud-init] *******************************************************************************************************************
+changed: [localhost]
+
+TASK [Start runner VM] ****************************************************************************************************************************************
+changed: [localhost]
+
+TASK [Wait for SSH port on runner VM] *************************************************************************************************************************
+ok: [localhost]
+
+TASK [Add runner VM to temporary inventory] *******************************************************************************************************************
+changed: [localhost]
+
+PLAY [Configure GitLab Runner VM] *****************************************************************************************************************************
+
+TASK [Stop if action is not deploy] ***************************************************************************************************************************
+skipping: [runner_vm]
+
+TASK [Wait for SSH connection] ********************************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Gather facts] *******************************************************************************************************************************************
+[WARNING]: Platform linux on host runner_vm is using the discovered Python interpreter at /usr/bin/python3.12, but future installation of another Python
+interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.17/reference_appendices/interpreter_discovery.html for more
+information.
+ok: [runner_vm]
+
+TASK [Validate target operating system] ***********************************************************************************************************************
+ok: [runner_vm] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Pause after cloud-init completion] **********************************************************************************************************************
+Pausing for 60 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [runner_vm]
+
+TASK [Wait until apt and dpkg locks are released] *************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Ensure apt keyrings directory exists] *******************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Remove conflicting Docker packages] *********************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Install base packages] **********************************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Add Docker GPG key] *************************************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Add Docker apt repository] ******************************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Install Docker Engine] **********************************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Ensure Docker configuration directory exists] ***********************************************************************************************************
+ok: [runner_vm]
+
+TASK [Configure Docker insecure registry] *********************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Enable Docker service] **********************************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Add GitLab Runner GPG key] ******************************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Add GitLab Runner apt repository] ***********************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Install GitLab Runner] **********************************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Add gitlab-runner user to docker group] *****************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Ensure GitLab Runner configuration directory exists] ****************************************************************************************************
+changed: [runner_vm]
+
+TASK [Create GitLab Runner registration template] *************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Check whether GitLab Runner config exists] **************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Read GitLab Runner config] ******************************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Derive GitLab Runner registration state] ****************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Fail when an unexpected runner token is already registered] *********************************************************************************************
+skipping: [runner_vm]
+
+TASK [Register GitLab Runner with authentication token] *******************************************************************************************************
+changed: [runner_vm]
+
+TASK [Ensure GitLab Runner service is enabled] ****************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Flush handlers before validation] ***********************************************************************************************************************
+
+RUNNING HANDLER [Restart Docker] ******************************************************************************************************************************
+changed: [runner_vm]
+
+RUNNING HANDLER [Restart GitLab Runner] ***********************************************************************************************************************
+changed: [runner_vm]
+
+TASK [Check Docker] *******************************************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Check GitLab Runner] ************************************************************************************************************************************
+ok: [runner_vm]
+
+TASK [Print status] *******************************************************************************************************************************************
+ok: [runner_vm] => {
+    "msg": [
+        [
+            "Client: Docker Engine - Community",
+            " Version:           29.5.3",
+            " API version:       1.54",
+            " Go version:        go1.26.4",
+            " Git commit:        d1c06ef",
+            " Built:             Wed Jun  3 18:00:12 2026",
+            " OS/Arch:           linux/amd64",
+            " Context:           default",
+            "",
+            "Server: Docker Engine - Community",
+            " Engine:",
+            "  Version:          29.5.3",
+            "  API version:      1.54 (minimum version 1.40)",
+            "  Go version:       go1.26.4",
+            "  Git commit:       285b471",
+            "  Built:            Wed Jun  3 18:00:12 2026",
+            "  OS/Arch:          linux/amd64",
+            "  Experimental:     false",
+            " containerd:",
+            "  Version:          v2.2.4",
+            "  GitCommit:        193637f7ee8ae5f5aa5248f49e7baa3e6164966e",
+            " runc:",
+            "  Version:          1.3.5",
+            "  GitCommit:        v1.3.5-0-g488fc13e",
+            " docker-init:",
+            "  Version:          0.19.0",
+            "  GitCommit:        de40ad0"
+        ],
+        [
+            "gitlab-runner: Service is running"
+        ]
+    ]
+}
+
+PLAY RECAP ****************************************************************************************************************************************************
+localhost                  : ok=15   changed=4    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+runner_vm                  : ok=30   changed=14   unreachable=0    failed=0    skipped=1    rescued=0    ignored=0  
