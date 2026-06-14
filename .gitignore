@@ -7,3 +7,6 @@
 .ansible
 env.yml
 *.retry
+.codex
+.agents
+.gitignore

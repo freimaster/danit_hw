@@ -1,0 +1,41 @@
+stages:
+  - test
+  - publish
+
+variables:
+  TEST_IMAGE: "$CI_REGISTRY_IMAGE/test:$CI_COMMIT_SHA"
+  PUBLISH_IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+  PUBLISH_IMAGE_LATEST: "$CI_REGISTRY_IMAGE:latest"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: "overlay2"
+
+default:
+  image: docker:28
+  services:
+    - name: docker:28-dind
+      command:
+        - "--tls=false"
+        - "--insecure-registry=192.168.1.182:5050"
+  before_script:
+    - docker info
+
+test:
+  stage: test
+  script:
+    - docker build --target test -t "$TEST_IMAGE" .
+    - docker run --rm "$TEST_IMAGE"
+
+publish:
+  stage: publish
+  needs:
+    - job: test
+  script:
+    - ': "${REGISTRY_USER:?Set REGISTRY_USER in GitLab CI/CD variables}"'
+    - ': "${REGISTRY_PASSWORD:?Set REGISTRY_PASSWORD in GitLab CI/CD variables}"'
+    - echo "$REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$REGISTRY_USER" --password-stdin
+    - docker build --target runtime -t "$PUBLISH_IMAGE" -t "$PUBLISH_IMAGE_LATEST" .
+    - docker push "$PUBLISH_IMAGE"
+    - docker push "$PUBLISH_IMAGE_LATEST"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
