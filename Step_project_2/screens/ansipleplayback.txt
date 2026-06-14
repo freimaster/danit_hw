@@ -1,3 +1,7 @@
+------------------------------------
+destroy
+------------------------------------
+
 $ ansible-playbook runner-lifecycle.yml -i 'localhost,' -e @env.yml -e action=destroy
 /usr/lib/python3/dist-packages/paramiko/pkey.py:82: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
   "cipher": algorithms.TripleDES,
@@ -77,7 +81,11 @@ skipping: no hosts matched
 PLAY RECAP ****************************************************************************************************************************************************
 localhost                  : ok=8    changed=2    unreachable=0    failed=0    skipped=9    rescued=0    ignored=0   
 
-user-a@Elite:~/danit_hw/Step_project_2/src$ ansible-playbook runner-lifecycle.yml -i 'localhost,' -e @env.yml -e action=deploy
+------------------------------------
+deploy
+------------------------------------
+
+$ ansible-playbook runner-lifecycle.yml -i 'localhost,' -e @env.yml -e action=deploy
 /usr/lib/python3/dist-packages/paramiko/pkey.py:82: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
   "cipher": algorithms.TripleDES,
 /usr/lib/python3/dist-packages/paramiko/transport.py:261: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
