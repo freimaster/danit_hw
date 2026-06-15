@@ -39,3 +39,4 @@ publish:
     - docker push "$PUBLISH_IMAGE_LATEST"
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+#wtf
