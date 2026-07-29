@@ -9,4 +9,11 @@ env.yml
 *.retry
 .codex
 .agents
-.gitignore
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+**/crash.log
+**/*.tfvars
+**/*.tfvars.json
