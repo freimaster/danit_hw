@@ -1,0 +1,64 @@
+---
+- name: Configure Nginx with Docker Compose
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Reset SSH connection
+      meta: reset_connection
+
+    - name: Create app directory
+      file:
+        path: /home/ubuntu/nginx
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Create docker-compose.yml
+      copy:
+        dest: /home/ubuntu/nginx/docker-compose.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+        content: |
+          services:
+            nginx:
+              image: nginx:latest
+              container_name: nginx
+              ports:
+                - "80:80"
+              restart: unless-stopped
+
+    - name: Pull Nginx image
+      become: false
+      command: docker pull nginx:latest
+
+    - name: Start Nginx with Docker Compose
+      become: false
+      command: docker compose up -d
+      args:
+        chdir: /home/ubuntu/nginx
