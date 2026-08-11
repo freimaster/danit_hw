@@ -1,0 +1,42 @@
+stages:
+  - test
+  - publish
+
+variables:
+  REGISTRY_HOST: "10.30.1.34:5050"
+  TEST_IMAGE: "$REGISTRY_HOST/root/step-project-3/test:$CI_COMMIT_SHA"
+  PUBLISH_IMAGE: "$REGISTRY_HOST/root/step-project-3:$CI_COMMIT_SHORT_SHA"
+  PUBLISH_IMAGE_LATEST: "$REGISTRY_HOST/root/step-project-3:latest"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: "overlay2"
+
+default:
+  tags:
+    - docker
+  image: docker:28
+  services:
+    - name: docker:28-dind
+      command:
+        - "--tls=false"
+        - "--insecure-registry=10.30.1.34:5050"
+  before_script:
+    - docker info
+
+test:
+  stage: test
+  script:
+    - docker build --target test -t "$TEST_IMAGE" .
+    - docker run --rm "$TEST_IMAGE"
+
+publish:
+  stage: publish
+  needs:
+    - job: test
+  script:
+    - echo "$REGISTRY_TOKEN" | docker login "$REGISTRY_HOST" -u root --password-stdin
+    - docker build --target runtime -t "$PUBLISH_IMAGE" -t "$PUBLISH_IMAGE_LATEST" .
+    - docker push "$PUBLISH_IMAGE"
+    - docker push "$PUBLISH_IMAGE_LATEST"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
