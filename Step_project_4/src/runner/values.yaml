@@ -1,0 +1,20 @@
+gitlabUrl: "http://192.168.1.182/"
+concurrent: 1
+unregisterRunners: false
+
+rbac:
+  create: true
+serviceAccount:
+  create: true
+
+runners:
+  secret: gitlab-runner-auth
+  config: |
+    [[runners]]
+      executor = "kubernetes"
+      [runners.kubernetes]
+        namespace = "{{ .Release.Namespace }}"
+        image = "alpine:3.22"
+        privileged = true
+        automount_service_account_token = true
+        service_account_overwrite_allowed = "^gitlab-deployer$"
