@@ -1,0 +1,22 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: telegram
+  group_by: [alertname, instance, mountpoint]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+
+receivers:
+  - name: telegram
+    telegram_configs:
+      - bot_token: 'REPLACE_WITH_BOT_TOKEN'
+        chat_id: 0  # Replace with YOUR numeric chat ID, including minus for a group.
+        send_resolved: true
+        parse_mode: ''
+        message: |-
+          {{ range .Alerts }}[{{ .Status | toUpper }}] {{ .Labels.alertname }}
+          {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ end }}

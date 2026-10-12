@@ -1,0 +1,49 @@
+groups:
+  - name: homework
+    rules:
+      - alert: HostDiskSpaceLow
+        expr: |
+          (
+            100 * node_filesystem_avail_bytes{job="node-exporter",fstype!~"tmpfs|devtmpfs|overlay|squashfs|nsfs|proc|sysfs|cgroup2?"}
+            / node_filesystem_size_bytes{job="node-exporter",fstype!~"tmpfs|devtmpfs|overlay|squashfs|nsfs|proc|sysfs|cgroup2?"}
+            < 15
+          )
+          and on(instance, device, mountpoint, fstype)
+          (node_filesystem_readonly{job="node-exporter"} == 0)
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Free disk space below 15%"
+          description: '{{ $labels.instance }} {{ $labels.mountpoint }}: {{ printf "%.1f" $value }}% available.'
+
+      - alert: HostCpuHigh
+        expr: 100 * (1 - avg by(instance) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[2m]))) > 80
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host CPU usage above 80%"
+          description: '{{ $labels.instance }}: {{ printf "%.1f" $value }}% busy, averaged across all CPUs.'
+
+      - alert: TargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus target unavailable"
+          description: '{{ $labels.job }} / {{ $labels.instance }} cannot be scraped.'
+  
+      - alert: EFKContainerMissing
+        expr: |
+          absent(container_last_seen{name="node-efk-app-1"})
+          or absent(container_last_seen{name="node-efk-kibana-1"})
+          or absent(container_last_seen{name="node-efk-fluentd-1"})
+          or absent(container_last_seen{name="node-efk-elasticsearch-1"})
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "EFK container missing"
+          description: 'No metrics for container {{ $labels.name }}.'
