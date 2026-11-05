@@ -1,0 +1,61 @@
+data.aws_availability_zones.available: Reading...
+aws_vpc.main: Refreshing state... [id=vpc-063fcae1ff7454f1d]
+module.eks.data.aws_iam_policy_document.assume_role_policy[0]: Reading...
+module.eks.data.aws_partition.current[0]: Reading...
+module.eks.data.aws_caller_identity.current[0]: Reading...
+module.eks.data.aws_iam_policy_document.assume_role_policy[0]: Read complete after 0s [id=2830595799]
+module.eks.data.aws_partition.current[0]: Read complete after 0s [id=aws]
+module.eks.aws_iam_role.this[0]: Refreshing state... [id=freimaster-cluster-20261105103428251800000001]
+module.eks.data.aws_caller_identity.current[0]: Read complete after 0s [id=896680309229]
+module.eks.data.aws_iam_session_context.current[0]: Reading...
+module.eks.data.aws_iam_session_context.current[0]: Read complete after 0s [id=arn:aws:iam::896680309229:user/ErsteUser]
+data.aws_availability_zones.available: Read complete after 0s [id=eu-central-1]
+aws_internet_gateway.main: Refreshing state... [id=igw-083b26680ac08f607]
+aws_subnet.public[0]: Refreshing state... [id=subnet-030e3282af799702a]
+aws_subnet.public[1]: Refreshing state... [id=subnet-031024306a1af1304]
+module.eks.aws_security_group.cluster[0]: Refreshing state... [id=sg-0c6fa5f66183f3fa9]
+module.eks.aws_security_group.node[0]: Refreshing state... [id=sg-0d4ab939795e6f80f]
+module.eks.aws_iam_role_policy_attachment.this["AmazonEKSClusterPolicy"]: Refreshing state... [id=freimaster-cluster-20261105103428251800000001/arn:aws:iam::aws:policy/AmazonEKSClusterPolicy]
+module.eks.aws_security_group_rule.node["ingress_cluster_kubelet"]: Refreshing state... [id=sgrule-2699053627]
+module.eks.aws_security_group_rule.node["ingress_self_coredns_tcp"]: Refreshing state... [id=sgrule-3133530800]
+module.eks.aws_security_group_rule.node["ingress_cluster_9443_webhook"]: Refreshing state... [id=sgrule-2748570059]
+module.eks.aws_security_group_rule.node["ingress_nodes_ephemeral"]: Refreshing state... [id=sgrule-1362224829]
+module.eks.aws_security_group_rule.node["egress_all"]: Refreshing state... [id=sgrule-2276807404]
+module.eks.aws_security_group_rule.node["ingress_cluster_6443_webhook"]: Refreshing state... [id=sgrule-3559839265]
+module.eks.aws_security_group_rule.node["ingress_cluster_8443_webhook"]: Refreshing state... [id=sgrule-3346196992]
+module.eks.aws_security_group_rule.node["ingress_self_coredns_udp"]: Refreshing state... [id=sgrule-513425759]
+module.eks.aws_security_group_rule.node["ingress_cluster_4443_webhook"]: Refreshing state... [id=sgrule-493662647]
+module.eks.aws_security_group_rule.node["ingress_cluster_443"]: Refreshing state... [id=sgrule-924577804]
+module.eks.aws_security_group_rule.cluster["ingress_nodes_443"]: Refreshing state... [id=sgrule-1700446868]
+aws_route_table.public: Refreshing state... [id=rtb-0652e41b00d22af46]
+aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-0dc60919a526ab864]
+aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-09b456aa9b150918a]
+module.eks.aws_eks_cluster.this[0]: Refreshing state... [id=freimaster]
+module.eks.module.eks_managed_node_group["main"].data.aws_iam_policy_document.assume_role_policy[0]: Reading...
+module.eks.module.eks_managed_node_group["main"].data.aws_iam_policy_document.assume_role_policy[0]: Read complete after 0s [id=2560088296]
+module.eks.module.eks_managed_node_group["main"].aws_iam_role.this[0]: Refreshing state... [id=main-eks-node-group-20261105103452138100000005]
+module.eks.aws_eks_access_entry.this["cluster_creator"]: Refreshing state... [id=freimaster:arn:aws:iam::896680309229:user/ErsteUser]
+module.eks.data.aws_eks_addon_version.this["coredns"]: Reading...
+module.eks.time_sleep.this[0]: Refreshing state... [id=2026-11-05T10:43:06Z]
+module.eks.data.aws_eks_addon_version.this["kube-proxy"]: Reading...
+module.eks.data.aws_eks_addon_version.this["vpc-cni"]: Reading...
+module.eks.module.eks_managed_node_group["main"].data.aws_ssm_parameter.ami[0]: Reading...
+module.eks.module.eks_managed_node_group["main"].module.user_data.null_resource.validate_cluster_service_cidr: Refreshing state... [id=5600130157731466598]
+module.eks.module.eks_managed_node_group["main"].aws_iam_role_policy_attachment.this["AmazonEC2ContainerRegistryReadOnly"]: Refreshing state... [id=main-eks-node-group-20261105103452138100000005/arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly]
+module.eks.module.eks_managed_node_group["main"].aws_iam_role_policy_attachment.this["AmazonEKSWorkerNodePolicy"]: Refreshing state... [id=main-eks-node-group-20261105103452138100000005/arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy]
+module.eks.module.eks_managed_node_group["main"].aws_iam_role_policy_attachment.this["AmazonEKS_CNI_Policy"]: Refreshing state... [id=main-eks-node-group-20261105103452138100000005/arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy]
+module.eks.data.aws_eks_addon_version.this["coredns"]: Read complete after 0s [id=coredns]
+module.eks.data.aws_eks_addon_version.this["kube-proxy"]: Read complete after 0s [id=kube-proxy]
+module.eks.data.aws_eks_addon_version.this["vpc-cni"]: Read complete after 0s [id=vpc-cni]
+module.eks.aws_eks_addon.before_compute["vpc-cni"]: Refreshing state... [id=freimaster:vpc-cni]
+module.eks.module.eks_managed_node_group["main"].data.aws_ssm_parameter.ami[0]: Read complete after 0s [id=/aws/service/eks/optimized-ami/1.35/amazon-linux-2023/x86_64/standard/recommended/release_version]
+module.eks.aws_eks_access_policy_association.this["cluster_creator_admin"]: Refreshing state... [id=freimaster#arn:aws:iam::896680309229:user/ErsteUser#arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy]
+module.eks.module.eks_managed_node_group["main"].aws_launch_template.this[0]: Refreshing state... [id=lt-026f0b0d5ef17cb9a]
+module.eks.module.eks_managed_node_group["main"].aws_eks_node_group.this[0]: Refreshing state... [id=freimaster:main-20261105105302032000000001]
+module.eks.aws_eks_addon.this["coredns"]: Refreshing state... [id=freimaster:coredns]
+module.eks.aws_eks_addon.this["kube-proxy"]: Refreshing state... [id=freimaster:kube-proxy]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.

@@ -1,0 +1,17 @@
+data.terraform_remote_state.dns: Reading...
+data.terraform_remote_state.cluster: Reading...
+data.terraform_remote_state.dns: Read complete after 0s
+data.terraform_remote_state.cluster: Read complete after 0s
+helm_release.ingress: Refreshing state... [id=ingress-nginx]
+data.kubernetes_service_v1.ingress: Reading...
+helm_release.argocd: Refreshing state... [id=argocd]
+data.kubernetes_service_v1.ingress: Read complete after 1s [id=ingress-nginx/ingress-nginx-controller]
+aws_route53_record.ingress["argocd.systemd.pp.ua"]: Refreshing state... [id=Z00623762O0D6M658GZOL_argocd.systemd.pp.ua_CNAME]
+aws_route53_record.ingress["app.systemd.pp.ua"]: Refreshing state... [id=Z00623762O0D6M658GZOL_app.systemd.pp.ua_CNAME]
+kubernetes_secret_v1.repository[0]: Refreshing state... [id=argocd/backend-git-repository]
+helm_release.application: Refreshing state... [id=backend-application]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
