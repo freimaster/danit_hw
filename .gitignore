@@ -1,6 +1,7 @@
 # IDE та редактори
 .idea/
 .vscode/
+Step_final/.tools/
 
 # Локальні налаштування Codex
 .codex/
