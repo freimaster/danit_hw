@@ -71,3 +71,6 @@ Desktop.ini
 *~
 # Gitignore окремого завдання
 /Step_final/project/.gitignore
+
+.git.zip
+.gitignore.zip

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: backend-application
+description: Bootstrap the backend Argo CD Application through Terraform.
+type: application
+version: 0.1.0

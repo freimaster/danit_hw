@@ -1,0 +1,5 @@
+aws_region     = "eu-central-1"
+cluster_name   = "freimaster"
+admin_cidrs    = ["YOUR_PUBLIC_IP/32"]
+capacity_type  = "ON_DEMAND"
+instance_types = ["c7i-flex.large"]

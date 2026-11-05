@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+images:
+  - name: backend-image
+    newName: 2222222200022/test
+    newTag: "9cc191ae781cbdbffe868901a5ebff8694f68f5c"
