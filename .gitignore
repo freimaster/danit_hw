@@ -68,3 +68,5 @@ Desktop.ini
 *.swp
 *.swo
 *~
+# Gitignore окремого завдання
+/Step_final/project/.gitignore
