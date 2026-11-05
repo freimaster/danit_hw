@@ -1,19 +1,70 @@
-.idea
-.vscode
-.stfolder
-.env
+# IDE та редактори
+.idea/
+.vscode/
+
+# Локальні налаштування Codex
+.codex/
+.agents/
+
+# Синхронізація
+.stfolder/
 .stignore
-.stfolder
-.ansible
+
+# Змінні середовища та локальні секрети
+.env
+.env.*
+!.env.example
+!.env.*.example
 env.yml
+.aws/
+.kube/
+
+# Локальні інструменти
+.tools/
+
+# Ansible
+.ansible/
 *.retry
-.codex
-.agents
-# Terraform
-**/.terraform/
-**/*.tfstate
-**/*.tfstate.*
-**/*.tfplan
-**/crash.log
-**/*.tfvars
-**/*.tfvars.json
+
+# Terraform: кеш, локальний стан і параметри
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.json.example
+.terraform.tfstate.lock.info
+terraform.rc
+.terraformrc
+
+# Python: віртуальні середовища та кеш
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node.js: встановлені залежності
+node_modules/
+.npm/
+
+# Службові файли ОС
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Тимчасові файли редакторів
+*.swp
+*.swo
+*~
